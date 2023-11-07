@@ -23,8 +23,10 @@ public class Server implements Runnable {
 	@Override
 	public void run() {
 	    try {
-	        server = new ServerSocket(8080);
+	    	int port = 8080;
+	        server = new ServerSocket(port);
 	        pool = Executors.newCachedThreadPool();
+			System.out.println("Servidor iniciado en el puerto: " + port);
 	        while (!done) {
 	            Socket client = server.accept();
 	            ConnectionHandler handler = new ConnectionHandler(client);
@@ -36,9 +38,9 @@ public class Server implements Runnable {
 	    }
 	}
 
-	public void broadcast(String message) {
+	public void broadcast(String message, String nickname) {
 		for (ConnectionHandler ch : connections) {
-			if (ch != null) {
+			if (ch != null && ch.nickname != nickname) {
 				ch.sendMessage(message);
 			}
 		}
@@ -79,15 +81,16 @@ public class Server implements Runnable {
 				out.println("Ingrese un nombre de usuario: ");
 				nickname = in.readLine();
 				System.out.println("Usuario " + nickname + " conectado");
-				broadcast(nickname + " se ha unido al chat!");
+				broadcast(nickname + " se ha unido al chat!", null);
 				String message;
 				while ((message = in.readLine()) != null) {
 					if (message.equalsIgnoreCase("chao")) {
-						broadcast("El usuario " + nickname + " abandonó");
+						System.out.println("Usuario " + nickname + " desconectado");
+						broadcast("El usuario " + nickname + " abandonó", null);
 						shutdown();
 					} else {
 						System.out.println(nickname + ": " + message);
-						broadcast(nickname + ": " + message);
+						broadcast(nickname + ": " + message, nickname);
 					}
 				}
 			} catch (IOException e) {
